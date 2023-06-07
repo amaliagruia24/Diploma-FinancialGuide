@@ -1,10 +1,17 @@
+import 'dart:convert';
+
 import 'package:financial_guide/constants.dart';
+import 'package:financial_guide/models/budget.model.dart';
+import 'package:financial_guide/models/response.budget.dart';
 import 'package:flutter/material.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:financial_guide/screens/Budget/budget.dart';
+import 'package:financial_guide/screens/Budget/new.budget.dart';
+import '../../screens/Budget/budget.details.dart';
 import 'package:financial_guide/screens/Profile/profile.dart';
 import 'package:financial_guide/screens/Transactions/transactions.dart';
 import 'package:financial_guide/screens/Dashboard/dashboard.dart';
+import 'package:http/http.dart' as http;
+import '../../utils/utils.dart';
 
 
 class Home extends StatefulWidget {
@@ -17,7 +24,20 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   late String email;
+  late String fullName;
+  late String userId;
   dynamic myToken;
+  ResponseBudget responseBudget = ResponseBudget(
+      statusCode: false,
+      budget: BudgetModel(
+        userId: "",
+        month: '',
+        income: 0,
+        planned_expense: 0,
+        goal: 0,
+        categories: []
+      ), errorMesage: "message");
+  late String ErrorMessage;
   @override
   void initState() {
     // TODO: implement initState
@@ -25,19 +45,36 @@ class _HomeState extends State<Home> {
     Map<String, dynamic> jwtDecodedToken = JwtDecoder.decode(widget.token);
     // myToken = widget.token;
     email = jwtDecodedToken['email'];
+    fullName = jwtDecodedToken['fullName'];
+    userId = jwtDecodedToken['_id'];
   }
 
   int currentTab = 0;
-  final List<Widget> screens = [
-    DashboardPage(),
-    TransactionsPage(),
-    ProfilePage(),
-    BudgetPage()
-  ];
 
   final PageStorageBucket bucket = PageStorageBucket();
   Widget currentScreen = DashboardPage();
 
+  Future<void> getCurrentMonthBudget(userId, month) async {
+    final body = {
+      "userId": userId,
+      "month": month
+    };
+    final uri = Uri.http("192.168.1.5:3000","/api/getUserBudgetByMonth", body);
+    final response = await http.get(uri);
+
+    var jsonresponse = jsonDecode(response.body);
+
+    if(jsonresponse['status']) {
+      var content = jsonresponse['message'] as List;
+      List<BudgetModel> list;
+      list = content.map<BudgetModel>((json) => BudgetModel.fromJson(json)).toList();
+      BudgetModel foundBudget = list[0];
+      print(foundBudget.month);
+      setState(() {
+        responseBudget = ResponseBudget(statusCode: jsonresponse['status'], budget: foundBudget, errorMesage: "");
+      });
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -116,9 +153,12 @@ class _HomeState extends State<Home> {
                 children: [
                   MaterialButton(
                     minWidth: 30,
-                    onPressed: () {
+                    onPressed: () async {
+                      await getCurrentMonthBudget(userId, getMonth(0).toLowerCase());
                       setState(() {
-                        currentScreen = BudgetPage();
+                        print(responseBudget.statusCode);
+                        responseBudget.statusCode ? currentScreen = BudgetDetails(budget: responseBudget.budget, userName: fullName, month: getMonth(0)) :
+                            currentScreen = BudgetPage(userId: userId, userName: fullName, month: getMonth(0));
                         currentTab = 2;
                       });
                     },

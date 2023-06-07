@@ -31,8 +31,8 @@ exports.login = async(req, res, next) => {
             throw new Error('Incorrect password');
         }
 
-        let tokenData = {_id: user._id, email:user.email};
-
+        let tokenData = {_id: user._id, email:user.email, fullName: user.fullName};
+        //console.log(user._id.toString());
         const token = await UserService.generateToken(tokenData, "secret key", '1h');
 
         res.status(200).json({status: true, token: token});

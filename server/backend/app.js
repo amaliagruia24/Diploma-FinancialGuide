@@ -1,12 +1,14 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const routes = require('./routes/routes');
+const BudgetRoutes = require('./routes/budget.routes');
 const body_parser = require('body-parser');
 require('dotenv').config();
 
 const app = express();
 app.use(express.json());
 app.use('/api', routes);
+app.use('/api', BudgetRoutes);
 app.use(body_parser.json());
 
 const mongoString = process.env.DATABASE_URL;
