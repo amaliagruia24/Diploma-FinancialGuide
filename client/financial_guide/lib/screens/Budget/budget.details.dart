@@ -20,42 +20,8 @@ class _BudgetDetailsState extends State<BudgetDetails> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          elevation: 15,
-          title: Text('Welcome, ${widget.userName}'),
-          centerTitle: true,
-          backgroundColor: kPrimaryColor,
-        ),
         body: Column(
         children: [
-          Container(
-            height: 40,
-            child: Row(
-              children: [
-                IconButton(
-                    onPressed: () {
-                      setState(() {
-                        counter -= 1;
-                        month = getMonth(counter);
-                      });
-                    },
-                    icon: Icon(Icons.arrow_left)
-                ),
-                Spacer(),
-                Text(month, style: TextStyle(fontSize: 20)),
-                Spacer(),
-                IconButton(
-                    onPressed: () {
-                      setState(() {
-                        counter += 1;
-                        month = getMonth(counter);
-                      });
-                    },
-                    icon: Icon(Icons.arrow_right)
-                ),
-              ],
-            ),
-          ),
           Expanded(
               child: ListView.builder(
                 itemCount: widget.budget.categories.length,

@@ -23,10 +23,13 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+
+  int monthRequested = 0;
   late String email;
   late String fullName;
   late String userId;
   dynamic myToken;
+  bool visible = false;
   ResponseBudget responseBudget = ResponseBudget(
       statusCode: false,
       budget: BudgetModel(
@@ -73,11 +76,87 @@ class _HomeState extends State<Home> {
       setState(() {
         responseBudget = ResponseBudget(statusCode: jsonresponse['status'], budget: foundBudget, errorMesage: "");
       });
+    } else {
+      setState(() {
+        responseBudget = ResponseBudget(statusCode: jsonresponse['status'], budget: BudgetModel(
+            userId: "",
+            month: '',
+            income: 0,
+            planned_expense: 0,
+            goal: 0,
+            categories: []
+        ), errorMesage: "Budget not set for this month.");
+      });
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: visible ? AppBar(
+        automaticallyImplyLeading: false,
+        elevation: 15,
+        title: Container(
+          height: 40,
+          child: Row(
+            children: [
+              IconButton(
+                  onPressed: () async {
+                    setState(() {
+                      monthRequested -= 1;
+                    });
+                    await getCurrentMonthBudget(
+                        userId, getMonth(monthRequested).toLowerCase());
+
+                    setState(() {
+                      visible = true;
+                      print(responseBudget.statusCode);
+                      print(monthRequested);
+                      responseBudget.statusCode ? currentScreen = BudgetDetails(
+                          budget: responseBudget.budget,
+                          userName: fullName,
+                          month: getMonth(monthRequested)) :
+                      currentScreen = BudgetPage(userId: userId,
+                          userName: fullName,
+                          month: getMonth(monthRequested));
+                      currentTab = 2;
+                    });
+                  },
+                  icon: Icon(Icons.arrow_left)
+              ),
+              Spacer(),
+              Text(getMonth(monthRequested), style: TextStyle(fontSize: 20)),
+              Spacer(),
+              IconButton(
+                  onPressed: () async {
+                    setState(() {
+                      monthRequested += 1;
+                    });
+                    await getCurrentMonthBudget(
+                        userId, getMonth(monthRequested).toLowerCase());
+                    setState(() {
+                      visible = true;
+                      print(responseBudget.statusCode);
+                      print(monthRequested);
+
+                      responseBudget.statusCode ? currentScreen = BudgetDetails(
+                          budget: responseBudget.budget,
+                          userName: fullName,
+                          month: getMonth(monthRequested)) :
+                      currentScreen = BudgetPage(userId: userId,
+                          userName: fullName,
+                          month: getMonth(monthRequested));
+                      currentTab = 2;
+                    });
+                  },
+                  icon: Icon(Icons.arrow_right)
+              ),
+            ],
+          ),
+        ),
+        centerTitle: true,
+        backgroundColor: kPrimaryColor,
+      ) : null,
       body: PageStorage(
         bucket: bucket,
         child: currentScreen,
@@ -102,6 +181,7 @@ class _HomeState extends State<Home> {
                     minWidth: 30,
                     onPressed: () {
                       setState(() {
+                        visible = false;
                         currentScreen = DashboardPage();
                         currentTab = 0;
                       });
@@ -126,6 +206,7 @@ class _HomeState extends State<Home> {
                     minWidth: 30,
                     onPressed: () {
                       setState(() {
+                        visible = false;
                         currentScreen = TransactionsPage();
                         currentTab = 1;
                       });
@@ -154,11 +235,12 @@ class _HomeState extends State<Home> {
                   MaterialButton(
                     minWidth: 30,
                     onPressed: () async {
-                      await getCurrentMonthBudget(userId, getMonth(0).toLowerCase());
+                      await getCurrentMonthBudget(userId, getMonth(monthRequested).toLowerCase());
                       setState(() {
+                        visible = true;
                         print(responseBudget.statusCode);
-                        responseBudget.statusCode ? currentScreen = BudgetDetails(budget: responseBudget.budget, userName: fullName, month: getMonth(0)) :
-                            currentScreen = BudgetPage(userId: userId, userName: fullName, month: getMonth(0));
+                        responseBudget.statusCode ? currentScreen = BudgetDetails(budget: responseBudget.budget, userName: fullName, month: getMonth(monthRequested)) :
+                            currentScreen = BudgetPage(userId: userId, userName: fullName, month: getMonth(monthRequested));
                         currentTab = 2;
                       });
                     },
@@ -182,6 +264,7 @@ class _HomeState extends State<Home> {
                     minWidth: 30,
                     onPressed: () {
                       setState(() {
+                        visible = false;
                         currentScreen = ProfilePage();
                         currentTab = 3;
                       });

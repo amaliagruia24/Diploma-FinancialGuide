@@ -105,46 +105,47 @@ class _BudgetPageState extends State<BudgetPage> {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        elevation: 15,
-        title: Text('Welcome, ${widget.userName}'),
-        centerTitle: true,
-        backgroundColor: kPrimaryColor,
-      ),
+      // appBar: AppBar(
+      //   automaticallyImplyLeading: false,
+      //   elevation: 15,
+      //   title: Container(
+      //     height: 40,
+      //     child: Row(
+      //       children: [
+      //         IconButton(
+      //             onPressed: () {
+      //               setState(() {
+      //                 counter -= 1;
+      //               });
+      //
+      //
+      //             },
+      //             icon: Icon(Icons.arrow_left)
+      //         ),
+      //         Spacer(),
+      //         Text(month, style: TextStyle(fontSize: 20)),
+      //         Spacer(),
+      //         IconButton(
+      //             onPressed: () {
+      //               setState(() {
+      //                 counter += 1;
+      //               });
+      //             },
+      //             icon: Icon(Icons.arrow_right)
+      //         ),
+      //       ],
+      //     ),
+      //   ),
+      //   centerTitle: true,
+      //   backgroundColor: kPrimaryColor,
+      // ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            Container(
-              height: 40,
-              child: Row(
-                children: [
-                  IconButton(
-                      onPressed: () {
-                        setState(() {
-                          counter -= 1;
-                          month = getMonth(counter);
-                        });
-                      },
-                      icon: Icon(Icons.arrow_left)
-                  ),
-                  Spacer(),
-                  Text(month, style: TextStyle(fontSize: 20)),
-                  Spacer(),
-                  IconButton(
-                      onPressed: () {
-                        setState(() {
-                          counter += 1;
-                          month = getMonth(counter);
-                        });
-                      },
-                      icon: Icon(Icons.arrow_right)
-                  ),
-                ],
-              ),
-            ),
             Stepper(
               physics: ClampingScrollPhysics(),
               steps: getSteps(),
