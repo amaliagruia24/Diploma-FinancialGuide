@@ -1,11 +1,13 @@
 import 'dart:convert';
 
+import 'package:financial_guide/components/expandablefab.dart';
 import 'package:financial_guide/constants.dart';
 import 'package:financial_guide/models/budget.model.dart';
 import 'package:financial_guide/models/response.budget.dart';
 import 'package:flutter/material.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:financial_guide/screens/Budget/new.budget.dart';
+import '../../models/transaction.model.dart';
 import '../../screens/Budget/budget.details.dart';
 import 'package:financial_guide/screens/Profile/profile.dart';
 import 'package:financial_guide/screens/Transactions/transactions.dart';
@@ -23,7 +25,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-
+  List<TransactionModel> userTransactions = [];
   int monthRequested = 0;
   late String email;
   late String fullName;
@@ -52,10 +54,47 @@ class _HomeState extends State<Home> {
     userId = jwtDecodedToken['_id'];
   }
 
+
   int currentTab = 0;
 
   final PageStorageBucket bucket = PageStorageBucket();
   Widget currentScreen = DashboardPage();
+
+  Future <void> getUserTransaction(userId) async {
+    final body = {
+      "userId": userId
+    };
+
+    final uri = Uri.http("192.168.1.5:3000","/api/getAllUserTransactions", body);
+    final response = await http.get(uri);
+
+    var jsonresponse = jsonDecode(response.body);
+
+    if(jsonresponse['status']) {
+      List<TransactionModel> transactions = [];
+      var transactionData = jsonresponse['message'];
+
+      for (var transactionJson in transactionData) {
+        TransactionModel transaction = TransactionModel(
+          userId: transactionJson['userId'],
+          type: transactionJson['type'],
+          day: transactionJson['day'],
+          month: transactionJson['month'],
+          year: transactionJson['year'],
+          amount: transactionJson['amount'],
+          category: transactionJson['category'],
+        );
+        transactions.add(transaction);
+      }
+      setState(() {
+        userTransactions = transactions;
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('something went wrong'))
+      );
+    }
+  }
 
   Future<void> getCurrentMonthBudget(userId, month) async {
     final body = {
@@ -68,10 +107,8 @@ class _HomeState extends State<Home> {
     var jsonresponse = jsonDecode(response.body);
 
     if(jsonresponse['status']) {
-      var content = jsonresponse['message'] as List;
-      List<BudgetModel> list;
-      list = content.map<BudgetModel>((json) => BudgetModel.fromJson(json)).toList();
-      BudgetModel foundBudget = list[0];
+      var content = jsonresponse['message'] as Map<String, dynamic>;
+      BudgetModel foundBudget = BudgetModel.fromJson(content);
       print(foundBudget.month);
       setState(() {
         responseBudget = ResponseBudget(statusCode: jsonresponse['status'], budget: foundBudget, errorMesage: "");
@@ -161,10 +198,7 @@ class _HomeState extends State<Home> {
         bucket: bucket,
         child: currentScreen,
       ),
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
-        onPressed: () {},
-      ),
+      floatingActionButton: ExpandableFab(userId: userId),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomAppBar(
         shape: CircularNotchedRectangle(),
@@ -204,10 +238,11 @@ class _HomeState extends State<Home> {
                   ),
                   MaterialButton(
                     minWidth: 30,
-                    onPressed: () {
+                    onPressed: () async {
+                      await getUserTransaction(userId);
                       setState(() {
                         visible = false;
-                        currentScreen = TransactionsPage();
+                        currentScreen = TransactionsPage(userId: userId, userTransactions: userTransactions);
                         currentTab = 1;
                       });
                     },

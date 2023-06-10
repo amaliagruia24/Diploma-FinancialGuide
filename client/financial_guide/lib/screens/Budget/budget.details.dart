@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:percent_indicator/linear_percent_indicator.dart';
 import '../../constants.dart';
 import '../../models/budget.model.dart';
 import '../../utils/utils.dart';
@@ -17,6 +18,13 @@ class _BudgetDetailsState extends State<BudgetDetails> {
   int counter = 0;
   late String month = widget.month;
 
+  double calculatePercentage(spent, to_spend) {
+    if(spent == 0) {
+      return 0.00;
+    }
+    return (spent/to_spend);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,7 +36,7 @@ class _BudgetDetailsState extends State<BudgetDetails> {
               itemBuilder: (context, index) {
                   return Container(
                     padding: EdgeInsets.fromLTRB(10, 10, 10, 0),
-                    height: 220,
+                    height: 150,
                     width: double.maxFinite,
                     child: Card(
                       elevation: 5,
@@ -45,7 +53,7 @@ class _BudgetDetailsState extends State<BudgetDetails> {
                             ),
                             Expanded(
                               child: Padding(
-                                padding: EdgeInsets.only(top: 20.0),
+                                padding: EdgeInsets.only(top: 30.0),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -56,14 +64,37 @@ class _BudgetDetailsState extends State<BudgetDetails> {
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                    SizedBox(height: 4.0),
+                                    SizedBox(height: 6.0),
                                     Text(
-                                      "Remaining ${widget.budget.categories[index].to_spend} RON",
+                                      widget.budget.categories[index].to_spend > widget.budget.categories[index].spent ?
+                                      "Remaining ${double.parse((widget.budget.categories[index].to_spend - widget.budget.categories[index].spent).toString())} RON" :
+                                      "Exceeded ${double.parse((widget.budget.categories[index].spent - widget.budget.categories[index].to_spend).toString())} RON",
                                       style: const TextStyle(
                                         fontSize: 14.0,
                                         color: Colors.grey,
                                       ),
                                     ),
+                                    SizedBox(height: 6.0),
+                                    LinearPercentIndicator(
+                                      barRadius: const Radius.circular(16),
+                                      center: Text("${(calculatePercentage(widget.budget.categories[index].spent, widget.budget.categories[index].to_spend) * 100).toStringAsFixed(2)} %", style: TextStyle(fontWeight: FontWeight.bold)),
+                                      animation: true,
+                                      animationDuration: 1000,
+                                      lineHeight: 20,
+                                      percent: calculatePercentage(widget.budget.categories[index].spent, widget.budget.categories[index].to_spend) < 1 ?
+                                      calculatePercentage(widget.budget.categories[index].spent, widget.budget.categories[index].to_spend) : 1,
+                                      progressColor: calculatePercentage(widget.budget.categories[index].spent, widget.budget.categories[index].to_spend) < 1 ? kPrimaryColor :
+                                      Colors.red.shade300,
+                                      backgroundColor: kPrimaryLightColor,
+                                    ),
+                                    SizedBox(height: 3.5),
+                                    Text(
+                                      "${double.parse(widget.budget.categories[index].spent.toString())} RON of ${double.parse(widget.budget.categories[index].to_spend.toString())} RON",
+                                      style: const TextStyle(
+                                        fontSize: 14.0,
+                                        color: Colors.grey
+                                      ),
+                                    )
                                   ],
                                 ),
                               ),

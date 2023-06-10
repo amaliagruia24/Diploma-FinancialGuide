@@ -33,12 +33,37 @@ exports.getUserBudgetByMonth = async(req, res, next) => {
         var month = req.query.month;
         let monthBudget = await BudgetService.getUserBudgetByMonth(userId, month);
 
-        if(monthBudget.length == 0) {
+        if(monthBudget == null) {
             res.status(404).json({status:false, message: "User did not set a budget for the month entered"});
         } else {
             res.status(200).json({status:true, message: monthBudget});
         }
     
+    } catch (error) {
+        throw(error);
+    }
+}
+
+exports.updateSpentOnCategory = async(req, res, next) => {
+    try {
+        var userId = req.query.userId;
+        var month = req.query.month;
+        var categoryName = req.query.categoryName;
+        var amount = req.query.amount;
+        let updatedBudget = await BudgetService.updateSpentOnCategory(userId, month, categoryName, amount);
+        res.status(200).json({status:true, message: updatedBudget});
+    } catch (error) {
+        throw(error);
+    }
+}
+
+exports.updateBudgetIncome = async(req, res, next) => {
+    try {
+        var userId = req.query.userId;
+        var month = req.query.month;
+        var amount = req.query.amount;
+        let updatedBudget = await BudgetService.updateBudgetIncome(userId, month, amount);
+        res.status(200).json({status: true, message: updatedBudget});
     } catch (error) {
         throw(error);
     }
