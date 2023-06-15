@@ -7,6 +7,7 @@ import 'package:financial_guide/models/response.budget.dart';
 import 'package:flutter/material.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:financial_guide/screens/Budget/new.budget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/transaction.model.dart';
 import '../../screens/Budget/budget.details.dart';
 import 'package:financial_guide/screens/Profile/profile.dart';
@@ -32,6 +33,7 @@ class _HomeState extends State<Home> {
   late String userId;
   dynamic myToken;
   bool visible = false;
+  late Widget currentScreen;
   ResponseBudget responseBudget = ResponseBudget(
       statusCode: false,
       budget: BudgetModel(
@@ -48,17 +50,17 @@ class _HomeState extends State<Home> {
     // TODO: implement initState
     super.initState();
     Map<String, dynamic> jwtDecodedToken = JwtDecoder.decode(widget.token);
-    // myToken = widget.token;
     email = jwtDecodedToken['email'];
     fullName = jwtDecodedToken['fullName'];
     userId = jwtDecodedToken['_id'];
+    currentScreen = DashboardPage(userName: fullName, userId: userId,);
   }
 
 
   int currentTab = 0;
 
   final PageStorageBucket bucket = PageStorageBucket();
-  Widget currentScreen = DashboardPage();
+  // Widget currentScreen = DashboardPage(userName: fullName,);
 
   Future <void> getUserTransaction(userId) async {
     final body = {
@@ -109,7 +111,6 @@ class _HomeState extends State<Home> {
     if(jsonresponse['status']) {
       var content = jsonresponse['message'] as Map<String, dynamic>;
       BudgetModel foundBudget = BudgetModel.fromJson(content);
-      print(foundBudget.month);
       setState(() {
         responseBudget = ResponseBudget(statusCode: jsonresponse['status'], budget: foundBudget, errorMesage: "");
       });
@@ -213,10 +214,11 @@ class _HomeState extends State<Home> {
                 children: [
                   MaterialButton(
                     minWidth: 30,
-                    onPressed: () {
+                    onPressed: ()  {
+                      // await getCurrentMonthBudget(userId, getMonth(monthRequested).toLowerCase());
                       setState(() {
                         visible = false;
-                        currentScreen = DashboardPage();
+                        currentScreen = DashboardPage(userName: fullName, userId: userId);
                         currentTab = 0;
                       });
                     },
@@ -297,7 +299,7 @@ class _HomeState extends State<Home> {
                   ),
                   MaterialButton(
                     minWidth: 30,
-                    onPressed: () {
+                    onPressed: () async {
                       setState(() {
                         visible = false;
                         currentScreen = ProfilePage();

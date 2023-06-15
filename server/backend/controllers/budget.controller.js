@@ -1,6 +1,6 @@
 const BudgetService = require("../services/budget.service");
 
-exports.createBudget = async(req, res, next) => {
+exports.createBudget = async(req, res) => {
     try {
       const {userId, month, income, planned_expense, goal, categories} = req.body;  
       const foundBudget = await BudgetService.checkBudget(userId, month);
@@ -8,10 +8,10 @@ exports.createBudget = async(req, res, next) => {
         res.status(400).json({status: false, message: "User already has a budget for this month!"});
       } else {
         let budget = await BudgetService.createBudget(userId, month, income, planned_expense, goal, categories);
-        res.json({status: true, success: budget});
+        res.status(200).json({status: true, success: budget});
       }
     } catch (error) {
-        next(error);
+        throw(error);
     }
 }
 

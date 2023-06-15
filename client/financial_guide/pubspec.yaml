@@ -43,6 +43,9 @@ dependencies:
   intl: ^0.18.1
   flutter_speed_dial: ^7.0.0
   percent_indicator: ^4.2.3
+  pie_chart: ^5.3.2
+  fl_chart: ^0.55.0
+
 
 dev_dependencies:
   flutter_test:
@@ -70,6 +73,8 @@ flutter:
   assets:
     - assets/welcome_screen.svg
     - assets/main_top.svg
+    - assets/dashboard.svg
+    - assets/profile-svgrepo-com.svg
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

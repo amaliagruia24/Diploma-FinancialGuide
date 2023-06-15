@@ -21,6 +21,17 @@ class UserService {
     static async generateToken(tokenData, secretKey, jwt_expire) {
         return await jwt.sign(tokenData, secretKey, {expiresIn: jwt_expire})
     }
+    
+    static async updatePassword(email, newPassword) {
+        try {
+            const user = await Model.findOne({email});
+            user.password = newPassword;
+            return user.save();
+        } catch (error) {
+            throw(error);
+        }
+
+    }
 }
 
 module.exports = UserService;

@@ -15,7 +15,6 @@ app.use(body_parser.json());
 
 const mongoString = process.env.DATABASE_URL;
 
-
 mongoose.connect(mongoString);
 const database = mongoose.connection
 
