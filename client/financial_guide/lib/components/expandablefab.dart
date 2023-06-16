@@ -8,6 +8,8 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 
+import '../models/budget.model.dart';
+
 class ExpandableFab extends StatefulWidget {
   final String userId;
   const ExpandableFab({
@@ -31,7 +33,10 @@ class _ExpandableFabState extends State<ExpandableFab>{
   TextEditingController expenseController = TextEditingController();
   final _incomeKey = GlobalKey<FormState>();
   final _expenseKey = GlobalKey<FormState>();
-  Future<void> addTransaction(userId, type, day, month, year, amount, category) async {
+  bool isRecurring = false;
+  List<String> userCategories = [];
+
+  Future<void> addTransaction(userId, type, day, month, year, amount, category, isRecurring) async {
     final body = {
       "userId": userId,
       "type": type,
@@ -39,7 +44,8 @@ class _ExpandableFabState extends State<ExpandableFab>{
       "month": month,
       "year": year,
       "amount": amount,
-      "category": category
+      "category": category,
+      "isRecurring": isRecurring
     };
 
     var response = await http.post(Uri.parse('http://192.168.1.5:3000/api/addTransaction'),
@@ -59,6 +65,7 @@ class _ExpandableFabState extends State<ExpandableFab>{
       );
     }
   }
+
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
@@ -168,6 +175,17 @@ class _ExpandableFabState extends State<ExpandableFab>{
                         ),
                       ],
                     ),
+                    StatefulBuilder(
+                        builder: (BuildContext context, StateSetter setState) {
+                          return CheckboxListTile(
+                            title: const Text("Make it recurring?"),
+                            value: isRecurring,
+                            onChanged: (bool? value) {
+                              setState(() {
+                                isRecurring = value!;
+                              });
+                            },);
+                        }),
                   ],
                 ),
                 actions: [
@@ -183,15 +201,8 @@ class _ExpandableFabState extends State<ExpandableFab>{
                         amount = int.parse(expenseController.text);
                         transactionType = "expense";
                       });
-                      print(widget.userId);
-                      print(transactionType);
-                      print(day.toString());
-                      print(month);
-                      print(year.toString());
-                      print(expenseController.text);
-                      print(category);
                       if(_expenseKey.currentState!.validate()) {
-                        addTransaction(widget.userId, transactionType, day, month, year, amount, category);
+                        addTransaction(widget.userId, transactionType, day, month, year, amount, category, isRecurring);
                       }
                       expenseController.clear();
                       Navigator.of(context).pop();
@@ -317,6 +328,7 @@ class _ExpandableFabState extends State<ExpandableFab>{
                         year = int.parse(arr[2]);
                         amount = int.parse(amountController.text);
                         transactionType = "income";
+                        isRecurring = false;
                       });
                       print(widget.userId);
                       print(transactionType);
@@ -326,7 +338,7 @@ class _ExpandableFabState extends State<ExpandableFab>{
                       print(amountController.text);
                       print(category);
                       if(_incomeKey.currentState!.validate()) {
-                        addTransaction(widget.userId, transactionType, day, month, year, amount, category);
+                        addTransaction(widget.userId, transactionType, day, month, year, amount, category, isRecurring);
                       }
                       amountController.clear();
                       //addTransaction(widget.userId, transactionType, day, month, year, amount, category);

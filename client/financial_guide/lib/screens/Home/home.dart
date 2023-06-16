@@ -91,10 +91,6 @@ class _HomeState extends State<Home> {
       setState(() {
         userTransactions = transactions;
       });
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('something went wrong'))
-      );
     }
   }
 

@@ -75,6 +75,7 @@ flutter:
     - assets/main_top.svg
     - assets/dashboard.svg
     - assets/profile-svgrepo-com.svg
+    - assets/no-transactions.svg
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

@@ -29,7 +29,11 @@ const transactionSchema = new mongoose.Schema({
     },
     category: {
         type: String, 
-    }
+    },
+    isRecurring: {
+        type: Boolean,
+        default: false
+    },
 });
 
 module.exports = mongoose.model('Transaction', transactionSchema)

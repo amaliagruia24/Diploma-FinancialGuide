@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:financial_guide/components/barchart.dart';
+import 'package:financial_guide/constants.dart';
 import 'package:financial_guide/models/budget.model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -24,6 +25,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Map<String, double> categoriesMap = {};
   List<TransactionModel> userTransactions = [];
+  List<TransactionModel> recurrentTransactions = [];
   late BudgetModel newMonthBudget;
   List<Color> colorList = [
     Colors.purple[200]!,
@@ -54,6 +56,7 @@ class _DashboardPageState extends State<DashboardPage> {
           year: transactionJson['year'],
           amount: transactionJson['amount'],
           category: transactionJson['category'],
+          isRecurring: transactionJson['isRecurring']
         );
         transactions.add(transaction);
       }
@@ -62,9 +65,6 @@ class _DashboardPageState extends State<DashboardPage> {
       });
       return userTransactions;
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('something went wrong'))
-      );
       return userTransactions;
     }
   }
@@ -107,6 +107,53 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
+  Future <List<TransactionModel>> getRecurringTransactions(userId, month) async {
+    final body = {
+      "userId": userId,
+      "month": month
+    };
+
+    final uri = Uri.http("192.168.1.5:3000","/api/getReccuring", body);
+    final response = await http.get(uri);
+
+    var jsonresponse = jsonDecode(response.body);
+
+    if(jsonresponse['status']) {
+      List<TransactionModel> transactions = [];
+      var transactionData = jsonresponse['message'];
+
+      for (var transactionJson in transactionData) {
+        if (transactionJson['isRecurring']) {
+          String transMonth = transactionJson['month'];
+          transMonth = transMonth[0].toUpperCase() + transMonth.substring(1);
+          String nextMonth = "";
+          for(int i = 0; i < months.length; ++i) {
+            if(months[i] == transMonth){
+              nextMonth = months[i+1];
+            }
+          }
+          TransactionModel transaction = TransactionModel(
+              userId: transactionJson['userId'],
+              type: transactionJson['type'],
+              day: transactionJson['day'],
+              month: nextMonth,
+              year: transactionJson['year'],
+              amount: transactionJson['amount'],
+              category: transactionJson['category'],
+              isRecurring: transactionJson['isRecurring']
+          );
+          transactions.add(transaction);
+        }
+      }
+      setState(() {
+        recurrentTransactions = transactions;
+      });
+      return recurrentTransactions;
+    } else {
+      return recurrentTransactions;
+    }
+  }
+
   Map<String, double> getBarChartData() {
     Map<String, double> data = {};
     for (var transaction in userTransactions) {
@@ -141,13 +188,27 @@ class _DashboardPageState extends State<DashboardPage> {
     }
     return barChartData;
   }
-
+  int getIconIndex (category) {
+    List<TransactionModel> expensesList = [];
+    for(int i = 0; i < userTransactions.length; ++i) {
+      if(userTransactions[i].type == "expense") {
+        expensesList.add(userTransactions[i]);
+      }
+    }
+    for(int i = 0; i < expensesList.length; ++i) {
+      if(expensesList[i].category == category) {
+        return i;
+      }
+    }
+    return 0;
+  }
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     getCurrentMonthBudget(widget.userId, getMonth(0).toLowerCase());
     getUserTransaction(widget.userId);
+    getRecurringTransactions(widget.userId, getMonth(0).toLowerCase());
   }
   @override
   Widget build(BuildContext context) {
@@ -204,15 +265,24 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
             ),
             Container(
-              alignment: Alignment.center,
-              padding: const EdgeInsets.only(top: 10.0, bottom: 6.0),
-              child: const Text(
-                'See where your money went',
-                style: TextStyle(
-                  fontSize: 25.0,
-                  fontWeight: FontWeight.bold,
+              padding: EdgeInsets.all(16.0),
+              child: const Padding(
+                padding: EdgeInsets.only(left: 8.0), // Adjust the left padding value as needed
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: Text(
+                    'See where your money went',
+                    style: TextStyle(
+                      color:  Colors.black54,
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
+            ),
+            Divider(
+              thickness: 0.8,
             ),
             Expanded(
               flex: 10,
@@ -224,17 +294,22 @@ class _DashboardPageState extends State<DashboardPage> {
                       future: getCurrentMonthBudget(widget.userId, getMonth(0).toLowerCase()),
                       builder: (BuildContext context, AsyncSnapshot<Map<String, double>> snapshot) {
                         if (snapshot.hasData) {
-                          return pie.PieChart(
-                            dataMap: categoriesMap,
-                            chartRadius: MediaQuery.of(context).size.width / 2,
-                            legendOptions: const pie.LegendOptions(
-                              legendPosition: pie.LegendPosition.right,
-                            ),
-                            chartValuesOptions: const pie.ChartValuesOptions(
-                              showChartValuesInPercentage: true,
-                            ),
-                            colorList: colorList,
-                          );
+                          if(categoriesMap.isNotEmpty) {
+                            return pie.PieChart(
+                              dataMap: categoriesMap,
+                              chartRadius: MediaQuery.of(context).size.width / 2,
+                              legendOptions: const pie.LegendOptions(
+                                legendPosition: pie.LegendPosition.right,
+                              ),
+                              chartValuesOptions: const pie.ChartValuesOptions(
+                                showChartValuesInPercentage: true,
+                              ),
+                              colorList: colorList,
+                            );
+                          } else {
+                            return Center(child: Text("Set budget first."));
+                          }
+
                         } else {
                           return Center(child: CircularProgressIndicator());
                         }
@@ -242,13 +317,141 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                   ),
                   Container(
-                    alignment: Alignment.center,
-                    padding: const EdgeInsets.only(top: 10.0, bottom: 30.0),
-                    child: const Text(
-                      'Analytics',
-                      style: TextStyle(
-                        fontSize: 25.0,
-                        fontWeight: FontWeight.bold,
+                    padding: EdgeInsets.all(16.0),
+                    child: const Padding(
+                      padding: EdgeInsets.only(left: 8.0), // Adjust the left padding value as needed
+                      child: Align(
+                        alignment: Alignment.topLeft,
+                        child: Text(
+                          'Scheduled Payments',
+                          style: TextStyle(
+                            color:  Colors.black54,
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(16.0),
+                    decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: const BorderRadius.all(Radius.circular(30.0))
+                    ),
+                    child: recurrentTransactions.isNotEmpty ? Column(
+                      children: List.generate(recurrentTransactions.length, (index) {
+                        return Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Container(
+                                  width: (MediaQuery.of(context).size.width - 40) * 0.7,
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 50,
+                                        height: 50,
+                                        decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: Colors.grey.withOpacity(0.1)
+                                        ),
+                                        child: Center(
+                                          child: Icon(
+                                              categoryIcons[getIconIndex(recurrentTransactions[index].category)]
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(width: 15),
+                                      Container(
+                                        width: (MediaQuery.of(context).size.width - 90) * 0.5,
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(recurrentTransactions[index].category!,
+                                              style: const TextStyle(
+                                                  fontSize: 15,
+                                                  color: Colors.black,
+                                                  fontWeight: FontWeight.w500),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            SizedBox(height: 5),
+                                            Text(
+                                              "Due date: ${recurrentTransactions[index].day}-${recurrentTransactions[index].month}-${recurrentTransactions[index].year}",
+                                              style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.black.withOpacity(0.5),
+                                                  fontWeight: FontWeight.bold),
+                                              overflow: TextOverflow.ellipsis,
+                                            )
+                                          ],
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  width: (MediaQuery.of(context).size.width - 40) * 0.3,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        "${double.parse(recurrentTransactions[index].amount.toString()).toString()} RON",
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 15,
+                                            color: Colors.red),
+                                      )
+                                    ],
+                                  ),
+                                )
+                              ],
+                            ),
+                            const Padding(
+                              padding: EdgeInsets.only(left: 65, top: 8),
+                              child: Divider(
+                                thickness: 0.8,
+                              ),
+                            ),
+                          ],
+                        );
+                      }),
+                    ) : Center(
+                          child: Column(
+                            children: [
+                              Icon(Icons.account_balance_wallet_outlined),
+                              Text("You don't have any recurrent payments this month.",
+                                style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.black.withOpacity(0.5),
+                                fontWeight: FontWeight.bold),
+                              ),
+                              Text("Go to Budget screen and set a budget for this month",
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.black.withOpacity(0.5),
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.all(16.0),
+                    child: const Padding(
+                      padding: EdgeInsets.only(left: 8.0), // Adjust the left padding value as needed
+                      child: Align(
+                        alignment: Alignment.topLeft,
+                        child: Text(
+                          'Analytics',
+                          style: TextStyle(
+                            color:  Colors.black54,
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -274,7 +477,12 @@ class _DashboardPageState extends State<DashboardPage> {
                             ]),
                             builder: (BuildContext context, AsyncSnapshot<List<Object>> snapshot) {
                               if (snapshot.hasData) {
-                                return BarChartDetails(data: getBarChartData(),);
+                                if(getBarChartData().isNotEmpty) {
+                                  return BarChartDetails(data: getBarChartData(),);
+                                } else {
+                                  return Center(child: Text("Set budget first"),);
+                                }
+
                               } else {
                                 return Center(child: CircularProgressIndicator());
                               }
