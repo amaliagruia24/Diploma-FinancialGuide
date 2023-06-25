@@ -32,6 +32,8 @@ class _DashboardPageState extends State<DashboardPage> {
     Colors.purple[400]!,
     Colors.lightBlue[200]!,
     Colors.lightBlue[800]!,
+    Colors.purple[300]!,
+    Colors.lightBlueAccent
   ];
   Future <List<TransactionModel>> getUserTransaction(userId) async {
     final body = {
@@ -157,7 +159,7 @@ class _DashboardPageState extends State<DashboardPage> {
   Map<String, double> getBarChartData() {
     Map<String, double> data = {};
     for (var transaction in userTransactions) {
-      String date = "${transaction.day}-${transaction.month}-${transaction.year}";
+      String date = "${transaction.day}-${transaction.month[0].toUpperCase() + transaction.month.substring(1)}";
       if(data.containsKey(date)) {
         if(transaction.type == "expense") {
           data[date] = (data[date] ?? 0.0) - transaction.amount;
@@ -189,14 +191,8 @@ class _DashboardPageState extends State<DashboardPage> {
     return barChartData;
   }
   int getIconIndex (category) {
-    List<TransactionModel> expensesList = [];
-    for(int i = 0; i < userTransactions.length; ++i) {
-      if(userTransactions[i].type == "expense") {
-        expensesList.add(userTransactions[i]);
-      }
-    }
-    for(int i = 0; i < expensesList.length; ++i) {
-      if(expensesList[i].category == category) {
+    for(int i = 0; i < categories.length; ++i) {
+      if(categories[i] == category) {
         return i;
       }
     }

@@ -191,8 +191,15 @@ class _BudgetPageState extends State<BudgetPage> {
       isActive: currentStep >= 0,
       title: const Text('Monthly Income'),
       content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Start by entering your total monthly income.'),
+          const Padding(
+            padding: EdgeInsets.only(bottom: 10.0), // Adjust the value as needed
+            child: Text(
+              'Start by entering your total money income',
+              style: TextStyle(),
+            ),
+          ),
           Form(
             key: _formKey,
             child: TextFormField(
@@ -204,14 +211,35 @@ class _BudgetPageState extends State<BudgetPage> {
                 return null;
               },
               controller: incomeController,
-              decoration: InputDecoration(labelText: "Enter income"),
+              decoration: InputDecoration(labelText: "Income: 0,00 RON"),
               keyboardType: TextInputType.number,
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.digitsOnly
               ],
             ),
           ),
-          Text('Note that this value can be modified later if a new income is added.')
+          Padding(
+            padding: const EdgeInsets.only(top: 10.0),
+            child: Container(
+              color: Colors.grey[200],
+              padding: EdgeInsets.all(8.0),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.lightbulb_outline,
+                    color: Colors.grey[600],
+                  ),
+                  SizedBox(width: 8.0),
+                  const Expanded(
+                    child: Text(
+                      'This value can be modified later if a new income is added.',
+                      style: TextStyle(fontStyle: FontStyle.italic),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
         ],
       ),
     ),
@@ -220,7 +248,10 @@ class _BudgetPageState extends State<BudgetPage> {
       title: const Text('Goal'),
       content: Column(
         children: [
-          Text('Now, let us know how much you plan to save this month'),
+          Padding(
+            padding: EdgeInsets.only(bottom: 10.0),
+            child: Text('Now, let us know how much you plan to save this month'),
+          ),
           Form(
             key: _goalKey,
             child: TextFormField(
@@ -239,21 +270,86 @@ class _BudgetPageState extends State<BudgetPage> {
               },
             ),
           ),
-          Text('We recommend you to save at least 20% of your income.'),
+          Padding(
+            padding: const EdgeInsets.only(top: 10.0),
+            child: Container(
+              color: Colors.grey[200],
+              padding: EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.lightbulb_outline,
+                        color: Colors.grey[600],
+                      ),
+                      SizedBox(width: 8.0),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'We recommend you to save at least 20% of your income.',
+                              style: TextStyle(fontStyle: FontStyle.italic),
+                            ),
+                            incomeController.text.isNotEmpty ?
+                            Text(
+                              'Recommended savings goal: ${int.parse(incomeController.text) * 0.2} RON',
+                              style: TextStyle(fontStyle: FontStyle.italic, color: Colors.green, fontWeight: FontWeight.bold),
+                            ) :
+                                Text(""),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          )
         ],
       ),
     ),
     Step(
       isActive: currentStep >= 2,
       title: const Text('Spendings'),
-      content: Text('The remaining amount of money to spend this month is ${calculateSpending(incomeController.text, goalController.text)}'),
+      content: RichText(
+        text: TextSpan(
+          text: 'The remaining amount of money to spend this month is ',
+          style: TextStyle(fontSize: 16.0, color: Colors.black),
+          children: [
+            WidgetSpan(
+              child: Container(
+                padding: EdgeInsets.only(top: 3.0, left: 8.0, right: 8.0),
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(4.0),
+                ),
+                child: Text(
+                  "${calculateSpending(incomeController.text, goalController.text)} RON.",
+                  style: TextStyle(
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.bold,
+                    color: kPrimaryColor,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      )
+
     ),
     Step(
       isActive: currentStep >= 3,
       title: const Text('Categories'),
       content: Column(
         children: [
-          const Text('Choose which categories you would like to set budgets for:'),
+          Padding(
+            padding: const EdgeInsets.all(9.0),
+            child: const Text('Choose the categories you would like to set budgets for:', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
           ElevatedButton(
               onPressed: _showMultiSelect,
               child: const Text('Select categories')
@@ -262,6 +358,7 @@ class _BudgetPageState extends State<BudgetPage> {
             height: 30,
           ),
           Wrap(
+            spacing: 8.0,
             children: _selectedCategories.map((e) => Chip(label: Text(e),)).toList(),
           )
         ],
@@ -286,6 +383,7 @@ class _BudgetPageState extends State<BudgetPage> {
                     width: 100,
                     child: TextFormField(
                       autovalidateMode: AutovalidateMode.onUserInteraction,
+                      decoration: InputDecoration(labelText: "0,00 RON"),
                       controller: textControllers[index],
                       // onSaved: (value) {
                       //   categoriesAmount.add(int.parse(textControllers[index].text));

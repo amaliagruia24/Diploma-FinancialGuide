@@ -15,26 +15,41 @@ class TransactionsPage extends StatefulWidget {
 
 class _TransactionsPageState extends State<TransactionsPage> {
   int getIconIndex (category) {
-    List<TransactionModel> expensesList = [];
-    for(int i = 0; i < widget.userTransactions.length; ++i) {
-      if(widget.userTransactions[i].type == "expense") {
-        expensesList.add(widget.userTransactions[i]);
-      }
-    }
-    for(int i = 0; i < expensesList.length; ++i) {
-      if(expensesList[i].category == category) {
+    for(int i = 0; i < categories.length; ++i) {
+      if(category == categories[i]) {
         return i;
       }
     }
     return 0;
   }
+  final TextEditingController _searchController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: kPrimaryColor,
           centerTitle: true,
-          title: Text('Transactions Page')),
+          title: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search a transaction..',
+                suffixIcon: IconButton(
+                  icon: Icon(Icons.clear),
+                  onPressed: () => _searchController.clear(),
+                ),
+                prefixIcon: IconButton(
+                  icon: Icon(Icons.search),
+                  onPressed: () {
+                    // Perform the search here
+                  },
+                ),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(20.0))
+              ),
+            ),
+          )),
       body: Padding(
         padding: const EdgeInsets.only(left: 20, right: 20),
         child: SingleChildScrollView(
@@ -82,11 +97,11 @@ class _TransactionsPageState extends State<TransactionsPage> {
                                   ),
                                   SizedBox(height: 5),
                                   Text(
-                                    "${widget.userTransactions[index].day}.${widget.userTransactions[index].month}.${widget.userTransactions[index].year}",
+                                    "${widget.userTransactions[index].day}-${widget.userTransactions[index].month}-${widget.userTransactions[index].year}",
                                     style: TextStyle(
                                         fontSize: 12,
                                         color: Colors.black.withOpacity(0.5),
-                                        fontWeight: FontWeight.w400),
+                                        fontWeight: FontWeight.bold),
                                     overflow: TextOverflow.ellipsis,
                                   )
                                 ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../constants.dart';
 import '../../models/budget.model.dart';
 import '../../utils/utils.dart';
@@ -17,12 +18,43 @@ class BudgetDetails extends StatefulWidget {
 class _BudgetDetailsState extends State<BudgetDetails> {
   int counter = 0;
   late String month = widget.month;
+  List<bool> alertDialogShownList = [];
+
+  @override
+  void initState() {
+    super.initState();
+    initializeAlertDialogFlags();
+  }
+
+  void initializeAlertDialogFlags() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    for (int i = 0; i < widget.budget.categories.length; i++) {
+      bool hasAlertDialogShown =
+          prefs.getBool('${widget.userName}_${widget.month}_$i') ?? false;
+      alertDialogShownList.add(hasAlertDialogShown);
+    }
+  }
+
+  void setAlertDialogShownFlag(int index) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('${widget.userName}_${widget.month}_$index', true);
+  }
 
   double calculatePercentage(spent, to_spend) {
     if(spent == 0) {
       return 0.00;
     }
     return (spent/to_spend);
+  }
+
+  int getIconIndex (category) {
+    for(int i = 0; i < categories.length; ++i) {
+      if(category == categories[i]) {
+        return i;
+      }
+    }
+    return 0;
   }
 
   @override
@@ -46,7 +78,7 @@ class _BudgetDetailsState extends State<BudgetDetails> {
                             Container(
                               padding: EdgeInsets.all(16.0),
                               child: Icon(
-                                categoryIcons[index],
+                                categoryIcons[getIconIndex(widget.budget.categories[index].categoryName)],
                                 size: 48.0,
                                 color: Colors.black,
                               ),
@@ -64,11 +96,13 @@ class _BudgetDetailsState extends State<BudgetDetails> {
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                    SizedBox(height: 6.0),
+                                    const SizedBox(height: 6.0),
                                     Text(
                                       widget.budget.categories[index].to_spend > widget.budget.categories[index].spent ?
-                                      "Remaining ${double.parse((widget.budget.categories[index].to_spend - widget.budget.categories[index].spent).toString())} RON" :
-                                      "Exceeded ${double.parse((widget.budget.categories[index].spent - widget.budget.categories[index].to_spend).toString())} RON",
+                                      "Remaining ${double.parse((
+                                          widget.budget.categories[index].to_spend - widget.budget.categories[index].spent).toString())} RON" :
+                                      "Exceeded ${double.parse((
+                                          widget.budget.categories[index].spent - widget.budget.categories[index].to_spend).toString())} RON",
                                       style: const TextStyle(
                                         fontSize: 14.0,
                                         color: Colors.grey,
