@@ -7,13 +7,17 @@ import 'package:flutter/services.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'package:quickalert/models/quickalert_type.dart';
+import 'package:quickalert/widgets/quickalert_dialog.dart';
 
 import '../models/budget.model.dart';
 
 class ExpandableFab extends StatefulWidget {
   final String userId;
+  final BudgetModel budget;
   const ExpandableFab({
     required this.userId,
+    required this.budget,
     super.key});
 
   @override
@@ -31,6 +35,8 @@ class _ExpandableFabState extends State<ExpandableFab>{
   int amount = 0;
   TextEditingController amountController = TextEditingController();
   TextEditingController expenseController = TextEditingController();
+  TextEditingController dateExpenseController = TextEditingController();
+  TextEditingController dateIncomeController = TextEditingController();
   final _incomeKey = GlobalKey<FormState>();
   final _expenseKey = GlobalKey<FormState>();
   bool isRecurring = false;
@@ -64,6 +70,14 @@ class _ExpandableFabState extends State<ExpandableFab>{
           SnackBar(content: Text('something went wrong'))
       );
     }
+  }
+
+  void alertToDismiss(category) {
+    showDialog(
+        context: context,
+        builder: (context) => ShowAlertAndAutoDismiss(
+          category: category,
+        ));
   }
 
   @override
@@ -132,12 +146,6 @@ class _ExpandableFabState extends State<ExpandableFab>{
                       ],
                     ),
                     const SizedBox(height: 16.0),
-                    TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: 'Description',
-                      ),
-                    ),
-                    const SizedBox(height: 16.0),
                     const Padding(
                       padding: EdgeInsets.only(left: 10.0), // Adjust the padding as needed
                       child: Align(
@@ -164,16 +172,31 @@ class _ExpandableFabState extends State<ExpandableFab>{
                       ).toList(),
                     ),
                     SizedBox(height: 16.0),
-                    Row(
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.only(left: 10.0), // Adjust the padding as needed
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text("Date ${dateFormat.format(DateTime.now())}"),
-                          ),
+                    TextField(
+                        controller: dateExpenseController, //editing controller of this TextField
+                        decoration: const InputDecoration(
+                            prefixIcon: Icon(Icons.calendar_today), //icon of text field
+                            labelText: "Enter Date" //label text of field
                         ),
-                      ],
+                        readOnly: true,  // when true user cannot edit text
+                        onTap: () async {
+                          DateTime? pickedDate = await showDatePicker(
+                              context: context,
+                              initialDate: DateTime.now(), //get today's date
+                              firstDate:DateTime(2000), //DateTime.now() - not to allow to choose before today.
+                              lastDate: DateTime(2101)
+                          );
+                          if(pickedDate != null ){
+                            String formattedDate = DateFormat('dd-MMMM-yyyy').format(pickedDate); // format date in required form here we use yyyy-MM-dd that means time is removed
+                            //You can format date as per your need
+                            setState(() {
+                              dateExpenseController.text = formattedDate; //set foratted date to TextField value.
+                              date = formattedDate;
+                            });
+                          }else{
+                            print("Date is not selected");
+                          }
+                        }
                     ),
                     StatefulBuilder(
                         builder: (BuildContext context, StateSetter setState) {
@@ -191,9 +214,7 @@ class _ExpandableFabState extends State<ExpandableFab>{
                 actions: [
                   TextButton(
                     onPressed: () {
-                      // TODO: Implement the logic for saving the income
                       setState(() {
-                        date = dateFormat.format(DateTime.now());
                         var arr = date.split('-');
                         day = int.parse(arr[0]);
                         month = arr[1].toLowerCase();
@@ -206,12 +227,29 @@ class _ExpandableFabState extends State<ExpandableFab>{
                       }
                       expenseController.clear();
                       Navigator.of(context).pop();
+                      for (int i = 0; i < widget.budget.categories.length; ++i) {
+                        if (widget.budget.categories[i].categoryName == category) {
+                          int initial = widget.budget.categories[i].to_spend;
+                          int newAmount = widget.budget.categories[i].spent + amount;
+                          if (newAmount >= initial) {
+                           // alertToDismiss(category);
+                            QuickAlert.show(
+                              context: context,
+                              type: QuickAlertType.warning,
+                              text: "You exceeded the budget for $category. Make sure to stick to the plan!",
+                            );
+                            break;
+                          }
+                        }
+                      }
                     },
                     child: Text('Save'),
                   ),
                   TextButton(
                     onPressed: () {
                       expenseController.clear();
+                      dateExpenseController.clear();
+                      amountController.clear();
                       Navigator.of(context).pop();
                     },
                     child: Text('Cancel'),
@@ -268,12 +306,6 @@ class _ExpandableFabState extends State<ExpandableFab>{
                         ),
                       ],
                     ),
-                    SizedBox(height: 16.0),
-                    TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: 'Description',
-                      ),
-                    ),
                     const SizedBox(height: 16.0),
                     const Padding(
                       padding: EdgeInsets.only(left: 10.0), // Adjust the padding as needed
@@ -303,25 +335,41 @@ class _ExpandableFabState extends State<ExpandableFab>{
                       ).toList(),
                     ),
                     SizedBox(height: 16.0),
-                    Row(
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.only(left: 10.0), // Adjust the padding as needed
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text("Date ${dateFormat.format(DateTime.now())}"),
-                          ),
+                    TextField(
+                        controller: dateIncomeController, //editing controller of this TextField
+                        decoration: const InputDecoration(
+                            prefixIcon: Icon(Icons.calendar_today), //icon of text field
+                            labelText: "Enter Date" //label text of field
                         ),
-                      ],
+                        readOnly: true,  // when true user cannot edit text
+                        onTap: () async {
+                          DateTime? pickedDate = await showDatePicker(
+                              context: context,
+                              initialDate: DateTime.now(), //get today's date
+                              firstDate:DateTime(2000), //DateTime.now() - not to allow to choose before today.
+                              lastDate: DateTime(2101)
+                          );
+                          if(pickedDate != null ){
+                            print(pickedDate);  //get the picked date in the format => 2022-07-04 00:00:00.000
+                            String formattedDate = DateFormat('dd-MMMM-yyyy').format(pickedDate); // format date in required form here we use yyyy-MM-dd that means time is removed
+                            print(formattedDate); //formatted date output using intl package =>  2022-07-04
+                            //You can format date as per your need
+                            setState(() {
+                              dateIncomeController.text = formattedDate; //set foratted date to TextField value.
+                              date = formattedDate;
+                            });
+                            print(date + " aici e");
+                          }else{
+                            print("Date is not selected");
+                          }
+                        }
                     ),
                   ],
                 ),
                 actions: [
                   TextButton(
                     onPressed: () {
-                      // TODO: Implement the logic for saving the income
                       setState(() {
-                        date = dateFormat.format(DateTime.now());
                         var arr = date.split('-');
                         day = int.parse(arr[0]);
                         month = arr[1].toLowerCase();
@@ -361,7 +409,21 @@ class _ExpandableFabState extends State<ExpandableFab>{
       ],
     );
   }
-
 }
 
+class ShowAlertAndAutoDismiss extends StatelessWidget {
+  final String category;
+  ShowAlertAndAutoDismiss({required this.category});
+
+  @override
+  Widget build(BuildContext context) {
+    print('building ShowAlertAndAutoDismiss');
+    Future.delayed(Duration(milliseconds: 3000)).then((_) {
+      print('ziiiip');
+    });
+    return AlertDialog(
+      title: Center(child: Text(category)),
+    );
+  }
+}
 

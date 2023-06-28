@@ -45,5 +45,4 @@ class MobileWelcomeScreen extends StatelessWidget {
       ],
     );
   }
-
 }

@@ -45,6 +45,7 @@ dependencies:
   percent_indicator: ^4.2.3
   pie_chart: ^5.3.2
   fl_chart: ^0.55.0
+  quickalert: ^1.0.1
 
 
 dev_dependencies:
@@ -76,6 +77,8 @@ flutter:
     - assets/dashboard.svg
     - assets/profile-svgrepo-com.svg
     - assets/no-transactions.svg
+    - assets/top_left_corner.png
+    - assets/bottom_right_corner.png
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

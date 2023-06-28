@@ -1,10 +1,13 @@
 import 'package:financial_guide/constants.dart';
 import 'package:financial_guide/screens/Home/home.dart';
+import 'package:financial_guide/screens/Signup/signup_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../components/snackbar.error.dart';
 
 class Login extends StatefulWidget {
   @override
@@ -20,6 +23,7 @@ class LoginForm extends State<Login> {
   TextEditingController passwordController = TextEditingController();
   bool _isNotValid = false;
   late SharedPreferences prefs;
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -51,7 +55,7 @@ class LoginForm extends State<Login> {
         prefs.setString('token', myToken);
         Navigator.push(context, MaterialPageRoute(builder: (context) => Home(token: myToken)));
       } else {
-        print('Something went wrong');
+        ErrorSnackBar.showError(context, "Something went wrong. Please try again.");
       }
     } else {
       setState(() {
@@ -64,6 +68,8 @@ class LoginForm extends State<Login> {
   Widget build(BuildContext context) {
     // TODO: implement build
     return Form(
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      key: _formKey,
       child: Column(
         children: [
           TextFormField(
@@ -76,8 +82,8 @@ class LoginForm extends State<Login> {
 
             },
             validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter your email';
+              if (value == null || value.isEmpty || !value.contains('@') || !value.contains('.')) {
+                return 'Please enter a valid email';
               }
               return null;
             },
@@ -98,6 +104,12 @@ class LoginForm extends State<Login> {
                 textInputAction: TextInputAction.done,
                 obscureText: true,
                 cursorColor: kPrimaryColor,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter password';
+                  }
+                  return null;
+                },
                 decoration: InputDecoration(
                   hintText: "Your password",
                   errorText: _isNotValid ? "Please enter values" : null,
@@ -111,14 +123,33 @@ class LoginForm extends State<Login> {
           const SizedBox(height: defaultPadding),
           ElevatedButton(
             onPressed: () {
-              loginUser();
+              if (_formKey.currentState!.validate()) {
+                loginUser();
+              }
             },
             child: Text("Login".toUpperCase()),
+          ),
+          const SizedBox(height: defaultPadding),
+          const Text(
+            "Don't have an account?",
+            style: TextStyle(fontSize: 18, color: kPrimaryColor, fontWeight: FontWeight.bold),
+          ),
+          InkWell(
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => SignUpScreen()));
+            },
+            child: const Text(
+              "Register here",
+              style: TextStyle(
+                fontSize: 18,
+                decoration: TextDecoration.underline,
+                color: Colors.blue,
+                fontWeight: FontWeight.bold
+              ),
+            ),
           ),
         ],
       ),
     );
   }
-
-
 }

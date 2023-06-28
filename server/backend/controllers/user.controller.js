@@ -31,7 +31,7 @@ exports.login = async(req, res) => {
             res.status(400).json({status: false, message: "Old password does not match"});
             throw new Error('Incorrect password');
         }
-
+        
         let tokenData = {_id: user._id, email:user.email, fullName: user.fullName};
         const token = await UserService.generateToken(tokenData, "secret key", '1h');
 

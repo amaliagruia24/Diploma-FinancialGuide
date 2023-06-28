@@ -127,6 +127,7 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: visible ? AppBar(
         automaticallyImplyLeading: false,
         elevation: 15,
@@ -195,7 +196,7 @@ class _HomeState extends State<Home> {
         bucket: bucket,
         child: currentScreen,
       ),
-      floatingActionButton: ExpandableFab(userId: userId),
+      floatingActionButton: ExpandableFab(userId: userId, budget: responseBudget.budget,),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomAppBar(
         shape: CircularNotchedRectangle(),

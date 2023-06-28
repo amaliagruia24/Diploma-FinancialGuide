@@ -14,6 +14,28 @@ class TransactionsPage extends StatefulWidget {
 }
 
 class _TransactionsPageState extends State<TransactionsPage> {
+  List<TransactionModel> filteredTransactions = [];
+
+  @override
+  void initState() {
+    super.initState();
+    filteredTransactions = widget.userTransactions;
+  }
+
+  void filterTransactions(String searchTerm) {
+    print(searchTerm);
+    setState(() {
+      if (searchTerm.isEmpty) {
+        filteredTransactions = widget.userTransactions;
+      } else {
+        filteredTransactions = widget.userTransactions
+            .where((transaction) =>
+        transaction.category!.toLowerCase().contains(searchTerm.toLowerCase()))
+            .toList();
+      }
+    });
+  }
+
   int getIconIndex (category) {
     for(int i = 0; i < categories.length; ++i) {
       if(category == categories[i]) {
@@ -32,21 +54,25 @@ class _TransactionsPageState extends State<TransactionsPage> {
           centerTitle: true,
           title: Container(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: TextField(
+            child:     TextField(
               controller: _searchController,
+              onChanged: filterTransactions,
               decoration: InputDecoration(
                 hintText: 'Search a transaction..',
                 suffixIcon: IconButton(
                   icon: Icon(Icons.clear),
-                  onPressed: () => _searchController.clear(),
+                  onPressed: () {
+                    _searchController.clear();
+                    filterTransactions('');
+                  },
                 ),
                 prefixIcon: IconButton(
                   icon: Icon(Icons.search),
                   onPressed: () {
-                    // Perform the search here
+                    filterTransactions(_searchController.text);
                   },
                 ),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(20.0))
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(20.0)),
               ),
             ),
           )),
@@ -54,7 +80,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
         padding: const EdgeInsets.only(left: 20, right: 20),
         child: SingleChildScrollView(
           child: widget.userTransactions.isNotEmpty ? Column(
-            children: List.generate(widget.userTransactions.length, (index) {
+            children: List.generate(filteredTransactions.length, (index) {
               return Column(
                 children: [
                   Row(
@@ -75,7 +101,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                                 child: widget.userTransactions[index].type == "income" ?
                                 Icon(Icons.arrow_upward_outlined) :
                                 Icon(
-                                    categoryIcons[getIconIndex(widget.userTransactions[index].category)]
+                                    categoryIcons[getIconIndex(filteredTransactions[index].category)]
                                 ),
                               ),
                             ),
@@ -88,7 +114,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                                 children: [
                                   Text(
                                     widget.userTransactions[index].type == "income" ?
-                                    "Income" : widget.userTransactions[index].category!,
+                                    "Income" : filteredTransactions[index].category!,
                                     style: const TextStyle(
                                         fontSize: 15,
                                         color: Colors.black,

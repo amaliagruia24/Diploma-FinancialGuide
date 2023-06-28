@@ -20,12 +20,18 @@ class Background extends StatelessWidget {
         height: MediaQuery.of(context).size.height,
         child: Stack(
           alignment: Alignment.center,
-          children: <Widget>[
+          children: [
             Positioned(
-                top: 0,
-                left: 0,
-                child: SvgPicture.asset("assets/main_top.svg", width: 120,
-                ),
+              top: 0,
+              left: 0,
+              child: Image.asset("assets/top_left_corner.png", width: 120,
+              ),
+            ),
+            Positioned(
+              bottom: 0,
+              right: 0,
+              child: Image.asset("assets/bottom_right_corner.png", width: 120,
+              ),
             ),
             SafeArea(child: child)
           ],

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class ErrorSnackBar {
-  static showError(BuildContext context) {
+  static showError(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
@@ -16,14 +16,14 @@ class ErrorSnackBar {
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text(
+                children: [
+                  const Text(
                     "Oops!",
                     style: TextStyle(fontSize: 18, color: Colors.white),
                   ),
                   Text(
-                    "That email address is already in use! Please try with a different one.",
-                    style: TextStyle(
+                    message,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 12,
                     ),

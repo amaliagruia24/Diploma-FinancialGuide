@@ -22,6 +22,16 @@ class SignupForm extends State<SignUp> {
   TextEditingController passwordController = TextEditingController();
   bool _isNotValid = false;
 
+  RegExp passValid = RegExp(r"(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*\W)");
+  bool validatePassword(String pass){
+    String _password = pass.trim();
+    if(passValid.hasMatch(_password)){
+      return true;
+    }else{
+      return false;
+    }
+  }
+
   void registerUser() async {
     if(emailController.text.isNotEmpty && nameController.text.isNotEmpty && passwordController.text.isNotEmpty) {
       var registerBody = {
@@ -42,7 +52,7 @@ class SignupForm extends State<SignUp> {
           SnackBar(content: Text('Register Succesfully'))
         );
       } else if (jsonresponse['status'] == false) {
-        ErrorSnackBar.showError(context);
+        ErrorSnackBar.showError(context, "That email address is already in use! Please try with a different one.");
       }
     } else {
       setState(() {
@@ -115,11 +125,19 @@ class SignupForm extends State<SignUp> {
               textInputAction: TextInputAction.done,
               obscureText: true,
               cursorColor: kPrimaryColor,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter a password';
+              validator: (value){
+                if(value!.isEmpty){
+                  return "Please enter password";
+                }else{
+                  //call function to check password
+                  bool result = validatePassword(value);
+                  if(result){
+                    // create account event
+                    return null;
+                  }else{
+                    return " Password should contain Capital, small letter & Number & Special Character";
+                  }
                 }
-                return null;
               },
               decoration: const InputDecoration(
                 hintText: "Your password",
@@ -143,6 +161,4 @@ class SignupForm extends State<SignUp> {
       ),
     );
   }
-
-
 }

@@ -10,28 +10,52 @@ class WelcomeImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    return Column(
-
-      children: [
-        const Text(
-          "Financial Guide",
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30.0),
-        ),
-        Row(
-          children: [
-            Expanded(
-              flex: 10,
-              child: SizedBox(
-                width: 250.0,
-                height: 250.0,
-                child: SvgPicture.asset("assets/welcome_screen.svg",),
-              ),
+    return Container(
+      padding: EdgeInsets.only(bottom: 50.0),
+      child: Column(
+        children: [
+          RichText(
+            textAlign: TextAlign.center,
+            text: const TextSpan(
+              style: TextStyle(fontSize: 25.0, color: Colors.black),
+              children: [
+                TextSpan(
+                  text: "Welcome to ",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                TextSpan(
+                  text: "Financial Guide\n",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 25.0,
+                    color: kPrimaryColor,
+                  ),
+                ),
+                TextSpan(
+                  text: "Helping you plan your monthly budget\nand track your expenses.",
+                  style: TextStyle(
+                    fontSize: 16.0,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
             ),
+          ),
+          Row(
+            children: [
+              Expanded(
+                flex: 10,
+                child: SizedBox(
+                  width: 250.0,
+                  height: 250.0,
+                  child: SvgPicture.asset("assets/welcome_screen.svg",),
+                ),
+              ),
 
-          ],
-        ),
-
-      ],
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
