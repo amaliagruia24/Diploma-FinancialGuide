@@ -13,7 +13,8 @@ exports.createTransaction = async(req, res, next) => {
 exports.getAllUserTransactions = async(req, res, next) => {
     try {
         let userId = req.query.userId;
-        let transactions = await TransactionService.getAllUserTransactions(userId);
+        let month = req.query.month;
+        let transactions = await TransactionService.getAllUserTransactions(userId, month);
         if (transactions.length == 0) {
             res.status(400).json({status: false, message: "User does not have any transactions."});
         } else {

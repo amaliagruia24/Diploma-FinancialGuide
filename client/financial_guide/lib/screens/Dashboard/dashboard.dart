@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:financial_guide/components/barchart.dart';
 import 'package:financial_guide/constants.dart';
@@ -35,9 +37,15 @@ class _DashboardPageState extends State<DashboardPage> {
     Colors.purple[300]!,
     Colors.lightBlueAccent
   ];
+
+  Map<String, String> currentInfo = {};
+  Random _random = Random();
+  late Timer _timer;
+
   Future <List<TransactionModel>> getUserTransaction(userId) async {
     final body = {
-      "userId": userId
+      "userId": userId,
+      "month": getMonth(0).toLowerCase()
     };
 
     final uri = Uri.http("192.168.1.5:3000","/api/getAllUserTransactions", body);
@@ -284,10 +292,48 @@ class _DashboardPageState extends State<DashboardPage> {
               flex: 10,
               child: ListView(
                 children: [
+                  Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 5.0),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withOpacity(0.15), // Set the opacity here
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.lightbulb,
+                        color: Colors.yellow[600],
+                      ),
+                      const SizedBox(width: 8.0),
+                      const Text(
+                        'New information arrived!',
+                        style: TextStyle(
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 8.0),
+                      TextButton(
+                        onPressed: () {
+                          // Add your action here
+                          print('Learn more clicked!');
+                        },
+                        child: const Text(
+                          'Learn more',
+                          style: TextStyle(
+                            fontSize: 16.0,
+                            color: Colors.blue,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                   SizedBox(
                     height: MediaQuery.of(context).size.height * 0.3, // Adjust the height as needed
                     child: FutureBuilder<Map<String, double>>(
                       future: getCurrentMonthBudget(widget.userId, getMonth(0).toLowerCase()),
+                      //future: getUserTransaction(widget.userId),
                       builder: (BuildContext context, AsyncSnapshot<Map<String, double>> snapshot) {
                         if (snapshot.hasData) {
                           if(categoriesMap.isNotEmpty) {

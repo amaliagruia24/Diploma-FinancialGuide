@@ -52,3 +52,10 @@ final List<String> months = [
   'October',
   'November',
   'December'];
+
+final Map<String, String> dailyTips = {
+  "inf1": "inf1",
+  "inf2": "inf2",
+  "inf3": "inf3",
+  "inf4": "inf4"
+};

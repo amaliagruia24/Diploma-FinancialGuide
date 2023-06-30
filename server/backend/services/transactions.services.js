@@ -11,8 +11,8 @@ class TransactionService{
         return await createTransaction.save();
     }
 
-    static async getAllUserTransactions(userId) {
-        const transactions = TransactionModel.find({userId});
+    static async getAllUserTransactions(userId, month) {
+        const transactions = TransactionModel.find({userId: userId, month: month});
         return transactions;
     }
 

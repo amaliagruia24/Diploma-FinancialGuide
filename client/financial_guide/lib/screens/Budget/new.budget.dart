@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:financial_guide/components/snackbar.success.dart';
 import 'package:financial_guide/models/category.model.dart';
 import 'package:financial_guide/screens/Budget/budget.details.dart';
 import 'package:flutter/material.dart';
@@ -55,6 +56,15 @@ class _BudgetPageState extends State<BudgetPage> {
 
   }
 
+  int getIconIndex (category) {
+    for(int i = 0; i < categories.length; ++i) {
+      if(category == categories[i]) {
+        return i;
+      }
+    }
+    return 0;
+  }
+
   void addBudget (userId, month, income, planned_expense, goal, userCategories) async {
     var newBudget = BudgetModel(
       userId: userId,
@@ -73,12 +83,10 @@ class _BudgetPageState extends State<BudgetPage> {
     var jsonresponse = jsonDecode(response.body);
 
     if(jsonresponse['status']) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('added budget'))
-      );
+      SuccessSnackBar.showSuccess(context, "Budget created succesfully.");
     } else if (jsonresponse['status'] == false) {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('cv eroare'))
+          SnackBar(content: Text(jsonresponse['message']))
       );
     }
   }
@@ -143,7 +151,8 @@ class _BudgetPageState extends State<BudgetPage> {
                   }
                   addBudget(
                       widget.userId,
-                      getMonth(counter).toLowerCase(),
+                      //getMonth(counter).toLowerCase(),
+                      widget.month.toLowerCase(),
                       int.parse(incomeController.text),
                       int.parse(calculateSpending(incomeController.text, goalController.text)),
                       int.parse(goalController.text),
@@ -375,7 +384,7 @@ class _BudgetPageState extends State<BudgetPage> {
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: Row(
               children: [
-                Icon(categoryIcons[index]),
+                Icon(categoryIcons[getIconIndex(_selectedCategories[index])]),
                 SizedBox(width: 10),
                 Text(_selectedCategories[index]),
                 Spacer(),
@@ -383,6 +392,7 @@ class _BudgetPageState extends State<BudgetPage> {
                     width: 100,
                     child: TextFormField(
                       autovalidateMode: AutovalidateMode.onUserInteraction,
+                      textInputAction: TextInputAction.next,
                       decoration: InputDecoration(labelText: "0,00 RON"),
                       controller: textControllers[index],
                       // onSaved: (value) {

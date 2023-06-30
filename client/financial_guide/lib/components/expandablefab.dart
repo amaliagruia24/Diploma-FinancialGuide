@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:financial_guide/components/snackbar.success.dart';
 import 'package:financial_guide/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -62,9 +63,7 @@ class _ExpandableFabState extends State<ExpandableFab>{
     var jsonresponse = jsonDecode(response.body);
 
     if(jsonresponse['status']) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Added transaction, shoul appear in Transaction page'))
-      );
+      SuccessSnackBar.showSuccess(context, "Transaction added succesfully.");
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('something went wrong'))

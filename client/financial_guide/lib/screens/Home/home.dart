@@ -64,7 +64,8 @@ class _HomeState extends State<Home> {
 
   Future <void> getUserTransaction(userId) async {
     final body = {
-      "userId": userId
+      "userId": userId,
+      "month": getMonth(monthRequested).toLowerCase()
     };
 
     final uri = Uri.http("192.168.1.5:3000","/api/getAllUserTransactions", body);
@@ -242,6 +243,7 @@ class _HomeState extends State<Home> {
                       setState(() {
                         visible = false;
                         currentScreen = TransactionsPage(userId: userId, userTransactions: userTransactions);
+                        print(userTransactions.toString());
                         currentTab = 1;
                       });
                     },
@@ -272,9 +274,9 @@ class _HomeState extends State<Home> {
                       await getCurrentMonthBudget(userId, getMonth(monthRequested).toLowerCase());
                       setState(() {
                         visible = true;
-                        print(responseBudget.statusCode);
-                        responseBudget.statusCode ? currentScreen = BudgetDetails(budget: responseBudget.budget, userName: fullName, month: getMonth(monthRequested)) :
-                            currentScreen = BudgetPage(userId: userId, userName: fullName, month: getMonth(monthRequested));
+                        print(responseBudget.budget.categories.toString());
+                        responseBudget.statusCode ? currentScreen = BudgetDetails(budget: responseBudget.budget, userName: fullName, month: getMonth(monthRequested).toLowerCase()) :
+                            currentScreen = BudgetPage(userId: userId, userName: fullName, month: getMonth(monthRequested).toLowerCase());
                         currentTab = 2;
                       });
                     },

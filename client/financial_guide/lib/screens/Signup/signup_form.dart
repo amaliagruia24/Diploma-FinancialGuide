@@ -1,7 +1,9 @@
 import 'dart:convert';
 
 import 'package:financial_guide/components/snackbar.error.dart';
+import 'package:financial_guide/components/snackbar.success.dart';
 import 'package:financial_guide/constants.dart';
+import 'package:financial_guide/screens/Login/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 final _formKey = GlobalKey<FormState>();
@@ -48,9 +50,8 @@ class SignupForm extends State<SignUp> {
       var jsonresponse = jsonDecode(response.body);
 
       if(jsonresponse['status']) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Register Succesfully'))
-        );
+        SuccessSnackBar.showSuccess(context, "Registered succesfully. Log in with the new account created.");
+        Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen()));
       } else if (jsonresponse['status'] == false) {
         ErrorSnackBar.showError(context, "That email address is already in use! Please try with a different one.");
       }
