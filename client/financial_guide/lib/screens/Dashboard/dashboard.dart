@@ -13,7 +13,6 @@ import 'package:http/http.dart' as http;
 import '../../models/transaction.model.dart';
 import '../../utils/utils.dart';
 
-
 class DashboardPage extends StatefulWidget {
   final String userName;
   final String userId;
@@ -38,9 +37,18 @@ class _DashboardPageState extends State<DashboardPage> {
     Colors.lightBlueAccent
   ];
 
-  Map<String, String> currentInfo = {};
+  String currentKey = "";
+  String currentInfo = "";
   Random _random = Random();
-  late Timer _timer;
+  Timer _timer = Timer(Duration(seconds: 10), () => {});
+
+  void selectRandomEntry() {
+    String randomKey = dailyTips.keys.elementAt(_random.nextInt(dailyTips.length));
+    setState(() {
+      currentKey = randomKey;
+      currentInfo = dailyTips[randomKey]!;
+    });
+  }
 
   Future <List<TransactionModel>> getUserTransaction(userId) async {
     final body = {
@@ -206,6 +214,7 @@ class _DashboardPageState extends State<DashboardPage> {
     }
     return 0;
   }
+
   @override
   void initState() {
     // TODO: implement initState
@@ -213,7 +222,18 @@ class _DashboardPageState extends State<DashboardPage> {
     getCurrentMonthBudget(widget.userId, getMonth(0).toLowerCase());
     getUserTransaction(widget.userId);
     getRecurringTransactions(widget.userId, getMonth(0).toLowerCase());
+    selectRandomEntry();
+    _timer = Timer.periodic(Duration(seconds: 60), (timer) {
+      selectRandomEntry();
+    });
   }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -314,13 +334,36 @@ class _DashboardPageState extends State<DashboardPage> {
                       ),
                       const SizedBox(width: 8.0),
                       TextButton(
-                        onPressed: () {
+                        onPressed: () async {
                           // Add your action here
-                          print('Learn more clicked!');
+                          await showDialog<void>(
+                            context: context,
+                            barrierDismissible: false, // user must tap button!
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text(currentKey),
+                                content: SingleChildScrollView(
+                                  child: ListBody(
+                                    children: <Widget>[
+                                      Text(currentInfo),
+                                    ],
+                                  ),
+                                ),
+                                actions: <Widget>[
+                                  TextButton(
+                                    child: const Text('Close'),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
+                          );
                         },
-                        child: const Text(
-                          'Learn more',
-                          style: TextStyle(
+                        child: Text(
+                          currentKey,
+                          style: const TextStyle(
                             fontSize: 16.0,
                             color: Colors.blue,
                           ),

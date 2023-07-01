@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:financial_guide/constants.dart';
 import 'package:financial_guide/screens/Profile/profile.menu.dart';
 import 'package:financial_guide/screens/welcome_screen.dart';
+import 'package:financial_guide/services/notification.service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
@@ -20,6 +21,14 @@ class _ProfilePageState extends State<ProfilePage> {
   TextEditingController oldPasswordController = TextEditingController();
   TextEditingController newPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+
+  NotificationsServices notificationsServices = NotificationsServices();
+
+  @override
+  void initState() {
+    super.initState();
+    notificationsServices.initialiseNotifications();
+  }
 
   Future<void> updateUser() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -56,6 +65,7 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -200,7 +210,49 @@ class _ProfilePageState extends State<ProfilePage> {
                       );
                     });
 
-              },)
+              },
+            ),
+            ProfileMenu(
+              text: "Enable Notifications",
+              icon: Icons.notifications_active_outlined,
+              press: () {
+                showDialog<void>(
+                  context: context,
+                  barrierDismissible: false, // user must tap button!
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: const Text('Enable notifications'),
+                      content: SingleChildScrollView(
+                        child: ListBody(
+                          children: const <Widget>[
+                            Text('Financial Guide wants to send you '
+                                'notifications whenever new financial information '
+                                'is available on the Dashboard Screen. New information '
+                                'arrives every 24h. Allow this type of notifications?'),
+                          ],
+                        ),
+                      ),
+                      actions: <Widget>[
+                        TextButton(
+                          child: const Text('Allow'),
+                          onPressed: () {
+                            notificationsServices.scheduleNotifications("Scheduled Notification", "Content");
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                        TextButton(
+                          child: const Text('Don\'t allow'),
+                          onPressed: () {
+                            notificationsServices.stopNotifications();
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            )
           ],
         ),
       )
